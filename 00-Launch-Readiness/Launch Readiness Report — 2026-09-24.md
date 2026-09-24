@@ -8,7 +8,9 @@
 - **Fake lead priced end-to-end** (computer portion): TEST — Zelda Fakewell, 2 full / 1 half (= 3 bathrooms), 2 HVAC, Founding, 3 ADDITIONAL standard sensors beyond the 4 included in setup + 1 specialty sensor → $849 annual, $353 setup, $76.41/mo (with only 3 standard sensors in total, setup is $248). Scenario B (Water Defense conversion within 30 days, Standard, 1 new sensor) → $749 first-year annual, $35 setup, $67.41/mo. Record in `05-Quote-Workflow/Test Lead — FAKE — 2026-09-24.md`.
 - **Lead to Quote SOP** written (`05-Quote-Workflow/1614 Home Co. — Lead to Quote SOP.md`).
 - **Campaign QR generated and machine-verified** to encode `…/1614-home-quote?src=qr` (PNG for print, SVG for the vendor), not Jotform's untagged link.
-- **Jotform QA, connector portion:** the form is enabled with one submission, and that most recent submission stores `src = mailer` exactly; the hidden field's unique name is `src`, so URL prefill works for all ten values; page 2 is optional (skip button, test row accepted with page 2 empty); no payment or scheduling fields exist. Still manual: notification recipient, autoresponder condition, phone-screen rendering, thank-you page and phone link.
+- **Jotform QA, connector portion:** the form is enabled with one submission, and that most recent submission stores `src = mailer` exactly; the hidden field's unique name is `src`, so URL prefill works for all ten values; page 2 is optional (skip button, test row accepted with page 2 empty); no payment or scheduling fields exist. Still manual (click-by-click in the QA checklist §7): notification recipient, autoresponder condition, thank-you page copy, and phone-screen rendering.
+- **Jotform “Other” source option restored** via the connector: four options (Mailer · Neighbor or referral · Realtor or loan officer · Other), the follow-up text box shown only for “Other” and still optional; field list unchanged. Visual confirmation is a 1-minute step in the QA checklist §7a.
+- **Sensor input semantics made explicit:** the calculator input is *Additional Standard Sensors Beyond Included 4*; Member Setup $199 covers the hub + first 4 standard sensors and they are never charged; specialty sensors are $49 each with no hidden standard charge. A `max(total − 4, 0)` helper exists for anyone counting totals. Engine, HTML, XLSX, SOP, call reference and test record all say so.
 - **All ten tracked `src` links** prepared in one table.
 - **Three GBP launch posts** paste-ready, banned-word check clean.
 - **Square audit checklist and CPA sales-tax decision list** written; confirmed from Square's documentation that Square Invoices applies manual tax rates (editable per invoice) and does not calculate tax from the customer's address, so the accurate configuration is one rate per jurisdiction chosen by service address, after the CPA decides taxability. No rate was configured.
@@ -39,10 +41,10 @@
 - Prepare the visit checklist and start the Home Record.
 - Confirm appointment and access.
 
-## Remaining computer-side work, in order (≈70 min)
+## Remaining account-side work, in order (≈55 min; Square, Google, and the Ohio Gateway are unreachable from the automation environment and are marked ACCOUNT-SIDE in their checklists)
 1. Vendor's license status check; apply if needed, stop at payment. (2–17 min)
 2. Square audit checklist §A–§D. (10 min)
-3. Remaining Jotform QA (§2, §3, phone rendering in §6) with the fake lead, then create the Square **draft** invoice for it and delete both afterwards. (12 min)
+3. Jotform QA checklist §7 (a–e) with the fake lead, then create the Square **draft** invoice for it and delete both afterwards. (12 min)
 4. Copy the two CURRENT agreements in, build the two Jotform Sign documents, run the fake test signing. (20 min)
 5. GBP verification and publish the three posts. (15 min)
 6. Send the CPA decision list. (2 min)
