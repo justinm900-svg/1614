@@ -27,9 +27,9 @@
 |---|---:|
 | Additional HVAC system | +$150 / year |
 | Additional water heater | +$40 / year |
-| Member Setup (one time, paid upfront) | $199 |
-| Additional standard leak sensor | $35 each |
-| Specialty / probe sensor | $49 each |
+| Member Setup (one time, paid upfront) — includes hub + first 4 standard leak sensors | $199 |
+| Additional standard sensor **beyond the included 4** (total needed − 4, never below 0) | $35 each |
+| Specialty / probe sensor (a specialty sensor in one of the first 4 spots is $49 only) | $49 each |
 | Water Defense standalone setup | $249 |
 | Water Defense conversion (setup completed within 30 days, then joins) | no $199 Member Setup · only newly approved sensors/equipment charged · −$50 on first-year membership |
 | Monthly option | annual total × 1.08 ÷ 12, 12-month term, setup upfront |

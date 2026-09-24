@@ -1,4 +1,5 @@
 # Google Business Profile — Verification Checklist
+> **ACCOUNT-SIDE TASK.** Google Business Profile is not reachable from the automation environment (checked twice on 2026-09-24; no further retries). Everything below is for Justin in a logged-in browser.
 **Prepared:** 2026-09-24 · **Status:** CURRENT · **Result:** NOT YET RUN (Google Business Profile is not reachable from this session; no Google account is connected). Resume the existing verified profile; do not redo completed work. ~10 minutes.
 
 Open business.google.com → the 1614 Home Co. profile → **Edit profile**.

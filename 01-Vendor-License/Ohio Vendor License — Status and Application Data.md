@@ -1,4 +1,5 @@
 # Ohio County Vendor's License — Status and Application Data
+> **ACCOUNT-SIDE TASK.** Ohio Business Gateway is not reachable from the automation environment (checked twice on 2026-09-24; no further retries). Everything below is for Justin in a logged-in browser.
 **Entity:** 1614 Home LLC · **Prepared:** 2026-09-24 · **Status:** CURRENT
 
 ## Status as of this session

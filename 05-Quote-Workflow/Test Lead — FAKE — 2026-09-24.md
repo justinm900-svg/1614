@@ -22,7 +22,7 @@ Rules applied: every full and half bathroom counts as one bathroom toward the ti
 | Approx. sq ft | 2,400 |
 | Sump pump | yes |
 | Plan | Founding (year one) |
-| Sensors | 3 standard, 1 specialty (probe) |
+| Sensors | **3 ADDITIONAL standard sensors beyond the 4 included in Member Setup** (7 standard at the home) + 1 specialty (probe) |
 | Water Defense | no |
 | Flags | none |
 
@@ -42,8 +42,8 @@ Inputs above were run through `quote_calculator.py`, `1614-quote-calculator.html
 | Founding membership, up to 3 baths (2 full + 1 half = 3 bathrooms → tier “up to 3”) | $699.00 |
 | Additional HVAC system (1 × $150) | $150.00 |
 | **Annual total** | **$849.00** |
-| Member Setup base | $199.00 |
-| Standard leak sensors (3 × $35) | $105.00 |
+| Member Setup base (includes hub + first 4 standard leak sensors) | $199.00 |
+| Additional standard sensors beyond included 4 (3 × $35) | $105.00 |
 | Specialty / probe sensor (1 × $49) | $49.00 |
 | **Setup total (upfront)** | **$353.00** |
 | Sales tax | TBD (CPA) — placeholder $0.00 |
@@ -51,6 +51,8 @@ Inputs above were run through `quote_calculator.py`, `1614-quote-calculator.html
 | **Pay monthly: $849 × 1.08 ÷ 12** | **$76.41/mo × 12** (setup $353 upfront) |
 
 Flags produced: `FOUNDING: verify seat available (first 25 homes TOTAL)`. No custom-review flags.
+
+**Sensor semantics for this scenario:** the calculator input is *Additional Standard Sensors Beyond Included 4*. Scenario A enters **3 additional** (the home needs 7 standard sensors; the first 4 ride on the $199 setup). If the home needed only **3 standard sensors in total**, the entry is **0** and setup is $199 + $49 = **$248.00** (annual and monthly unchanged). Both cases are covered in the automated tests and the XLSX test sheet.
 
 ### Scenario B — same fake home, Water Defense conversion (also verified three ways)
 Assumes Zelda completed the $249 Water Defense Setup 10 days ago and now joins a Standard membership; one additional standard sensor approved.
@@ -61,7 +63,7 @@ Assumes Zelda completed the $249 Water Defense Setup 10 days ago and now joins a
 | Water Defense conversion credit (first year) | −$50.00 |
 | **Annual total, first year** | **$749.00** |
 | Member Setup base | waived (already installed) |
-| Newly approved standard sensor (1 × $35) | $35.00 |
+| Newly approved additional standard sensor (1 × $35; the included 4 were placed with the Water Defense Setup) | $35.00 |
 | **Setup total (upfront)** | **$35.00** |
 | **Pay annually: due at signup** | **$784.00** |
 | **Pay monthly: $749 × 1.08 ÷ 12** | **$67.41/mo × 12** (setup $35 upfront) |
@@ -71,7 +73,7 @@ Flag produced: `CONVERSION: confirm Water Defense Setup was completed within 30 
 ## 3. Square DRAFT invoice (do NOT send)
 - ☐ Square Dashboard → Invoices → Create invoice → template **Annual Membership + Setup**.
 - ☐ Customer: create **TEST — Zelda Fakewell** (mark as test in customer note).
-- ☐ Line items exactly as the table above (membership line $849.00 or $699 + $150 as two lines; setup lines separately).
+- ☐ Line items exactly as the table above (membership line $849.00 or $699 + $150 as two lines; setup lines separately: Member Setup $199 “includes hub + first 4 standard sensors”, Additional standard sensors 3 × $35, Specialty sensor 1 × $49).
 - ☐ Tax line: leave OFF (placeholder) until the CPA decision list is resolved.
 - ☐ Confirm settings: due on invoice date · card ON · ACH ON · tipping OFF · partial payments OFF.
 - ☐ Message reads exactly: “Thank you for choosing 1614 Home Co. Final pricing reflects your home review. Service scheduling is confirmed after payment and required agreements are completed.”

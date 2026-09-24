@@ -1,4 +1,5 @@
 # Square Audit Checklist — 1614 Home Co.
+> **ACCOUNT-SIDE TASK.** Square is not reachable from the automation environment (checked twice on 2026-09-24; no further retries). Everything below is for Justin in a logged-in browser.
 **Prepared:** 2026-09-24 · **Status:** CURRENT · **Result:** NOT YET RUN (Square is not reachable from this session and no login was available). Each line is a pass/fail check; expected total time ~10 minutes.
 
 ## A. Taxpayer / business identity

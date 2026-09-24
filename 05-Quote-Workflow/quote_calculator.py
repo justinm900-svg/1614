@@ -22,9 +22,10 @@ PRICING = {
     "custom_review_baths": 6,               # 6+ bathrooms -> custom review
     "hvac_adder": 150,                      # per ADDITIONAL HVAC system / year
     "water_heater_adder": 40,               # per ADDITIONAL water heater / year
-    "setup_base": 199,
-    "standard_sensor": 35,
-    "specialty_sensor": 49,
+    "setup_base": 199,                      # includes the hub + the first 4 standard leak sensors
+    "included_standard_sensors": 4,         # covered by the $199 base; NEVER charged
+    "standard_sensor": 35,                  # per ADDITIONAL standard sensor beyond the included 4
+    "specialty_sensor": 49,                 # per specialty / probe sensor
     "water_defense_standalone": 249,
     "conversion_credit": 50,                # Water Defense -> membership: credit on first-year membership
     "monthly_factor": Decimal("1.08"),
@@ -42,6 +43,17 @@ PRICING = {
 # to the FIRST-YEAR MEMBERSHIP PRICE (not to setup).
 CONVERSION_WINDOW_DAYS = 30
 
+# SENSOR INPUT SEMANTICS (Justin, 2026-09-24): the standard-sensor input is
+# "Additional Standard Sensors Beyond Included 4". The $199 Member Setup already covers the
+# hub and the first 4 standard leak sensors, so those are never entered and never charged.
+# A specialty/probe sensor placed in one of the first four positions is charged $49 only;
+# it does not create an "additional standard sensor" charge for that location.
+
+
+def additional_from_total(total_standard_sensors: int) -> int:
+    """Convert a TOTAL standard-sensor count at the home into the chargeable ADDITIONAL count."""
+    return max(int(total_standard_sensors) - PRICING["included_standard_sensors"], 0)
+
 
 def money(x) -> Decimal:
     """Round to cents, half-up (never banker's rounding)."""
@@ -57,8 +69,8 @@ class HomeInput:
     sqft: int | None = None
     sump_pump: bool | None = None
     founding: bool = False
-    standard_sensors: int = 0
-    specialty_sensors: int = 0
+    additional_standard_sensors: int = 0  # ADDITIONAL standard sensors beyond the included 4 ($35 each)
+    specialty_sensors: int = 0            # specialty / probe sensors ($49 each)
     water_defense: bool = False          # add standalone Water Defense setup
     membership: bool = True              # quoting a membership (vs Water Defense only)
     wd_conversion: bool = False          # completed $249 Water Defense Setup, joining membership within 30 days
@@ -81,7 +93,8 @@ class Quote:
     conversion_credit: Decimal           # negative or 0; applied to FIRST-YEAR membership price
     annual_total: Decimal                # membership + adders + conversion credit (first-year annual)
     setup_base: Decimal
-    standard_sensor_total: Decimal
+    included_standard_sensors: int       # informational: covered by setup base, $0
+    standard_sensor_total: Decimal       # additional standard sensors × $35
     specialty_sensor_total: Decimal
     water_defense_total: Decimal
     setup_total: Decimal                 # upfront, one time
@@ -165,7 +178,9 @@ def calculate(h: HomeInput) -> Quote:
 
     # ---- one-time setup ----
     setup_base = money(p["setup_base"]) if (h.membership and not custom_review and not converting) else Decimal(0)
-    std_total = money(h.standard_sensors * p["standard_sensor"])      # conversion: only NEW sensors entered here
+    if h.additional_standard_sensors < 0 or h.specialty_sensors < 0:
+        raise ValueError("sensor counts cannot be negative")
+    std_total = money(h.additional_standard_sensors * p["standard_sensor"])   # additional beyond included 4 (conversion: newly approved only)
     spec_total = money(h.specialty_sensors * p["specialty_sensor"])
     if h.water_defense and converting:
         wd_total = Decimal(0)
@@ -199,6 +214,7 @@ def calculate(h: HomeInput) -> Quote:
         conversion_credit=credit,
         annual_total=annual_total,
         setup_base=setup_base,
+        included_standard_sensors=p["included_standard_sensors"] if setup_base else 0,
         standard_sensor_total=std_total,
         specialty_sensor_total=spec_total,
         water_defense_total=wd_total,
@@ -237,10 +253,11 @@ def render(h: HomeInput, q: Quote, customer: str = "") -> str:
         L.append("MEMBER SETUP (one time, paid upfront)")
         if q.setup_base:
             L.append(f"  Member Setup base .............. ${q.setup_base:>9,.2f}")
+            L.append(f"    includes hub + first {q.included_standard_sensors} standard leak sensors")
         else:
             L.append("  Member Setup base .............. waived (Water Defense conversion)")
         if q.standard_sensor_total:
-            L.append(f"  Standard leak sensors .......... ${q.standard_sensor_total:>9,.2f}")
+            L.append(f"  Additional standard sensors ({h.additional_standard_sensors} beyond included 4 × $35) ${q.standard_sensor_total:>9,.2f}")
         if q.specialty_sensor_total:
             L.append(f"  Specialty / probe sensors ...... ${q.specialty_sensor_total:>9,.2f}")
         if q.water_defense_total:
@@ -267,13 +284,15 @@ if __name__ == "__main__":
     ap.add_argument("--full", type=int, default=2); ap.add_argument("--half", type=int, default=1)
     ap.add_argument("--hvac", type=int, default=1); ap.add_argument("--wh", type=int, default=1)
     ap.add_argument("--sqft", type=int); ap.add_argument("--founding", action="store_true")
-    ap.add_argument("--std", type=int, default=0); ap.add_argument("--spec", type=int, default=0)
+    ap.add_argument("--add-std", type=int, default=0, help="ADDITIONAL standard sensors beyond the included 4")
+    ap.add_argument("--total-std", type=int, help="alternative: TOTAL standard sensors at the home (converted with max(total-4,0))"); ap.add_argument("--spec", type=int, default=0)
     ap.add_argument("--water-defense", action="store_true"); ap.add_argument("--conversion", action="store_true", help="Water Defense Setup completed within 30 days; joining membership")
     ap.add_argument("--boiler", action="store_true"); ap.add_argument("--well", action="store_true")
     ap.add_argument("--json", action="store_true"); ap.add_argument("--customer", default="")
     a = ap.parse_args()
+    add_std = additional_from_total(a.total_std) if a.total_std is not None else a.add_std
     h = HomeInput(full_baths=a.full, half_baths=a.half, hvac_systems=a.hvac, water_heaters=a.wh,
-                  sqft=a.sqft, founding=a.founding, standard_sensors=a.std, specialty_sensors=a.spec,
+                  sqft=a.sqft, founding=a.founding, additional_standard_sensors=add_std, specialty_sensors=a.spec,
                   water_defense=a.water_defense, wd_conversion=a.conversion, boiler=a.boiler,
                   well_or_pressure_tank=a.well)
     q = calculate(h)

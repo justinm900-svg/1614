@@ -1,6 +1,6 @@
 """Tests for the 1614 Home Co. quote calculator. Run: python3 -m pytest -q  (or python3 test_quote_calculator.py)"""
 from decimal import Decimal as D
-from quote_calculator import HomeInput, calculate, bathroom_tier, money
+from quote_calculator import HomeInput, calculate, bathroom_tier, money, additional_from_total, PRICING
 
 
 def test_tiers():
@@ -42,11 +42,24 @@ def test_adders():
 
 
 def test_setup_and_sensors():
-    q = calculate(HomeInput(full_baths=2, standard_sensors=3, specialty_sensors=1))
+    # input = ADDITIONAL standard sensors beyond the included 4
+    q = calculate(HomeInput(full_baths=2, additional_standard_sensors=3, specialty_sensors=1))
     assert q.setup_base == D(199)
+    assert q.included_standard_sensors == 4
     assert q.standard_sensor_total == D(105)
     assert q.specialty_sensor_total == D(49)
     assert q.setup_total == D(199 + 105 + 49)
+    # the included four are never charged
+    q0 = calculate(HomeInput(full_baths=2, specialty_sensors=1))
+    assert q0.standard_sensor_total == 0 and q0.setup_total == D(199 + 49)
+    # TOTAL-count helper: 3 total -> 0 additional; 4 -> 0; 7 -> 3
+    assert PRICING["included_standard_sensors"] == 4
+    assert additional_from_total(3) == 0 and additional_from_total(4) == 0 and additional_from_total(7) == 3
+    q3 = calculate(HomeInput(full_baths=2, additional_standard_sensors=additional_from_total(3), specialty_sensors=1))
+    assert q3.setup_total == D(248)
+    # specialty sensor in one of the first four positions: $49 only, no standard charge for that spot
+    q4 = calculate(HomeInput(full_baths=2, additional_standard_sensors=additional_from_total(3), specialty_sensors=1))
+    assert q4.standard_sensor_total == 0 and q4.specialty_sensor_total == D(49)
 
 
 def test_water_defense_and_conversion():
@@ -54,11 +67,11 @@ def test_water_defense_and_conversion():
     assert q.water_defense_total == D(249)
     assert q.setup_total == D(199 + 249)
     # Conversion within 30 days: no $199 setup, only new sensors, $50 credit on FIRST-YEAR MEMBERSHIP
-    q2 = calculate(HomeInput(full_baths=2, wd_conversion=True, standard_sensors=1))
+    q2 = calculate(HomeInput(full_baths=2, wd_conversion=True, additional_standard_sensors=1))
     assert q2.setup_base == 0
     assert q2.conversion_credit == D(-50)
     assert q2.annual_total == D(799 - 50)
-    assert q2.setup_total == D(35)                      # only the newly approved sensor
+    assert q2.setup_total == D(35) and q2.included_standard_sensors == 0   # only the newly approved sensor
     assert q2.monthly_payment == D("67.41")             # 749 * 1.08 / 12
     assert q2.grand_total_annual_plan == D(749 + 35)
     assert any("CONVERSION" in f and "30 days" in f for f in q2.flags)

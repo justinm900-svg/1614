@@ -26,6 +26,8 @@
 - **Bathroom tier:** count every full bathroom and every half bathroom as one. 2 full + 2 half = 4 bathrooms = 4-bath tier.
 - **Water Defense conversion:** a homeowner who completed the $249 Water Defense Setup and joins within 30 days pays **no** $199 Member Setup, is charged **only newly approved sensors/equipment**, and gets a separate **$50 credit on the first-year membership price**. Tick “Water Defense conversion” in the calculator; enter only the new sensors.
 
+- **Sensors:** Member Setup ($199) includes the hub and the **first 4 standard leak sensors**. The calculator asks only for *Additional Standard Sensors Beyond Included 4*: count the standard sensors the home needs, subtract 4, never below 0. Specialty / probe sensors are $49 each; a specialty sensor that takes one of the first four spots is $49 only, never $49 + $35.
+
 ## Custom review path
 6+ bathrooms, ≥ 5,000 sq ft, boiler, well / pressure tank, or anything unusual → gather photos or a short walkthrough call, decide scope, then quote. Never derive a 6+ bath or 5,000+ sq ft price from the tier table.
 
