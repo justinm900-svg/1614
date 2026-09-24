@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+06-Agreements/signed/
+*.env
+Taxes/**/*.pdf

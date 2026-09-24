@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1614 Quote Calculator</title>
+<meta name="description" content="1614 Home Co. quote calculator — CURRENT version 2026-09-24. Mirrors quote_calculator.py.">
+<style>
+  :root{--bg:#f7f8f7;--card:#ffffff;--ink:#1c2321;--muted:#5d6b66;--line:#d8dedb;--accent:#1f6f5f;--warn:#9a5b00;--warnbg:#fff4e0;--flag:#8a1f1f;--flagbg:#fdeaea;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121615;--card:#1b2220;--ink:#e8ecea;--muted:#a3b0ab;--line:#2d3936;--accent:#5fc3ab;--warn:#f0b451;--warnbg:#2c2410;--flag:#ff8d8d;--flagbg:#3a1c1c;}}
+  :root[data-theme="dark"]{--bg:#121615;--card:#1b2220;--ink:#e8ecea;--muted:#a3b0ab;--line:#2d3936;--accent:#5fc3ab;--warn:#f0b451;--warnbg:#2c2410;--flag:#ff8d8d;--flagbg:#3a1c1c;}
+  *{box-sizing:border-box;min-width:0}
+  html,body{max-width:100%;overflow-x:hidden}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  h1{font-size:22px;margin:0 0 2px;overflow-wrap:anywhere} .tag{color:var(--muted);margin:0 0 14px;font-size:14px}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  @media(min-width:760px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .card h2{font-size:15px;margin:0 0 10px;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+  label{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px dashed var(--line);font-size:15px}
+  label:last-child{border-bottom:0}
+  input[type=number],input[type=text],select{width:110px;max-width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:15px}
+  input[type=text]{width:100%;max-width:100%;flex:1 1 160px}
+  input[type=checkbox]{width:20px;height:20px}
+  .row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:4px 0;font-variant-numeric:tabular-nums}
+  .row.total{font-weight:700;border-top:1px solid var(--line);margin-top:4px;padding-top:8px}
+  .big{font-size:20px;font-weight:700;color:var(--accent)}
+  .note{font-size:13px;color:var(--muted)}
+  .flag{background:var(--flagbg);color:var(--flag);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}
+  .warn{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}
+  textarea{width:100%;max-width:100%;min-height:300px;font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px}
+  button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:15px;cursor:pointer}
+  .small{font-size:12px;color:var(--muted);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>1614 Home Co. — Quote Calculator</h1>
+  <p class="tag">Keep water where it belongs. &nbsp;·&nbsp; CURRENT version 2026-09-24 &nbsp;·&nbsp; internal use only</p>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Home</h2>
+        <label>Customer / address label <input type="text" id="cust" placeholder="e.g. TEST — Fake Customer"></label>
+        <label>Full bathrooms <input type="number" id="full" min="0" value="2"></label>
+        <label>Half bathrooms <input type="number" id="half" min="0" value="1"></label>
+        <label>HVAC systems <input type="number" id="hvac" min="1" value="1"></label>
+        <label>Water heaters <input type="number" id="wh" min="1" value="1"></label>
+        <label>Approx. square feet <input type="number" id="sqft" min="0" placeholder="optional"></label>
+        <label>Sump pump <select id="sump"><option value="">not confirmed</option><option value="yes">yes</option><option value="no">no</option></select></label>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h2>Plan &amp; setup</h2>
+        <label>Quote a membership <input type="checkbox" id="member" checked></label>
+        <label>Founding (year one) — first 25 homes TOTAL <input type="checkbox" id="founding"></label>
+        <label>Standard leak sensors ($35) <input type="number" id="std" min="0" value="0"></label>
+        <label>Specialty / probe sensors ($49) <input type="number" id="spec" min="0" value="0"></label>
+        <label>Water Defense setup ($249) <input type="checkbox" id="wd"></label>
+        <label>$50 membership conversion credit <input type="checkbox" id="credit"></label>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h2>Flags</h2>
+        <label>Boiler <input type="checkbox" id="boiler"></label>
+        <label>Well / pressure tank <input type="checkbox" id="well"></label>
+        <label>Unusual complexity <input type="checkbox" id="complex"></label>
+        <label>Complexity note <input type="text" id="cnote" placeholder="optional"></label>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h2>Sales tax placeholder</h2>
+        <label>Rate % (address-based; leave blank) <input type="number" id="taxrate" min="0" step="0.01" placeholder="blank"></label>
+        <label>Apply to <select id="taxbase"><option value="none">none (TBD — CPA)</option><option value="setup">setup only</option><option value="all">annual + setup</option></select></label>
+        <p class="note">Placeholder only. Taxability of membership / setup / sensors / filters / Water Defense is pending CPA confirmation. Look up the rate per service address with Ohio “The Finder”.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" id="out"></div>
+      <div class="card" style="margin-top:14px">
+        <h2>Quote text (paste into notes / Square draft)</h2>
+        <textarea id="txt" readonly></textarea>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button id="copy">Copy quote text</button><button id="reset" style="background:var(--muted)">Reset</button></div>
+        <p class="small">Logic mirrors <code>quote_calculator.py</code>. Half bath counts 0.5 toward tier, rounded up (assumption flagged for Justin). Monthly = annual × 1.08 ÷ 12, rounded half-up to cents. Setup paid upfront. 12-month term.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const P={standard:{3:799,4:899,5:999},founding:{3:699,4:799,5:899},customBaths:6,hvac:150,wh:40,setup:199,std:35,spec:49,wd:249,credit:50,factor:1.08,months:12,cap:25,sqft:5000};
+const HALF=0.5;
+const $=id=>document.getElementById(id);
+const n=id=>{const v=parseInt($(id).value,10);return isNaN(v)?0:Math.max(0,v)};
+const r2=x=>Math.round((x+Number.EPSILON)*100)/100; // half-up on positive values
+const usd=x=>'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function tier(full,half){const c=Math.ceil(full+half*HALF);if(c>=P.customBaths)return null;return c<=3?3:c}
+function calc(){
+  const full=n('full'),half=n('half'),hvac=Math.max(1,n('hvac')),wh=Math.max(1,n('wh'));
+  const sqftRaw=$('sqft').value, sqft=sqftRaw===''?null:n('sqft');
+  const member=$('member').checked, founding=$('founding').checked;
+  const flags=[]; let custom=false;
+  const t=tier(full,half); let tierLabel;
+  if(t===null){tierLabel='6+ bathrooms — CUSTOM REVIEW';flags.push('CUSTOM REVIEW: 6+ bathrooms — do not quote from table.');custom=true}
+  else tierLabel={3:'Up to 3 bathrooms',4:'4 bathrooms',5:'5 bathrooms'}[t];
+  if(sqft!==null&&sqft>=P.sqft){flags.push('CUSTOM REVIEW: '+sqft.toLocaleString()+' sq ft (>= 5,000).');custom=true}
+  if($('boiler').checked)flags.push('FLAG: Boiler present — confirm scope before quoting.');
+  if($('well').checked)flags.push('FLAG: Well / pressure tank — confirm scope before quoting.');
+  if($('complex').checked)flags.push('FLAG: Unusual complexity'+($('cnote').value?' ('+$('cnote').value+')':'')+' — review before quoting.');
+  if(!$('sump').value)flags.push('INFO: Sump pump status not confirmed — ask on call.');
+  if(founding)flags.push('FOUNDING: verify seat available (first 25 homes TOTAL across the launch area) before offering.');
+  const plan=founding?'founding':'standard';
+  const base=(member&&!custom)?P[plan][t]:0;
+  const hv=(member&&!custom)?Math.max(0,hvac-1)*P.hvac:0, wv=(member&&!custom)?Math.max(0,wh-1)*P.wh:0;
+  const annual=r2(base+hv+wv);
+  const setupBase=(member&&!custom)?P.setup:0, stdT=n('std')*P.std, specT=n('spec')*P.spec, wdT=$('wd').checked?P.wd:0;
+  let credit=0; if($('credit').checked){ if(member&&!custom)credit=-P.credit; else flags.push('NOTE: $50 conversion credit only applies when converting to a membership; not applied.'); }
+  const setup=r2(setupBase+stdT+specT+wdT+credit);
+  const monthly=annual>0?r2(annual*P.factor/P.months):0;
+  let tax=0, taxNote="Sales tax: TBD — taxability pending CPA confirmation; rate is address-based (use Ohio 'The Finder').";
+  const tr=parseFloat($('taxrate').value), tb=$('taxbase').value;
+  if(!isNaN(tr)&&tb!=='none'){const b=tb==='setup'?setup:annual+setup;tax=r2(b*tr/100);taxNote='Sales tax PLACEHOLDER at '+tr.toFixed(2)+'% on \''+tb+'\' — verify before invoicing.'}
+  const grand=r2(annual+setup+tax);
+  // render
+  let h='<h2>Quote</h2>';
+  h+='<div class="row"><span>Tier</span><b>'+tierLabel+'</b></div>';
+  h+='<div class="row"><span>Plan</span><b>'+(founding?'FOUNDING (year one)':'STANDARD')+'</b></div>';
+  if(custom){h+='<div class="flag"><b>CUSTOM REVIEW REQUIRED</b> — no table price issued.</div>'}
+  else{
+    h+='<div class="row"><span>Membership base</span><span>'+usd(base)+'</span></div>';
+    if(hv)h+='<div class="row"><span>Additional HVAC ('+(hvac-1)+')</span><span>'+usd(hv)+'</span></div>';
+    if(wv)h+='<div class="row"><span>Additional water heater ('+(wh-1)+')</span><span>'+usd(wv)+'</span></div>';
+    h+='<div class="row total"><span>Annual total</span><span>'+usd(annual)+'</span></div>';
+    h+='<div style="height:8px"></div>';
+    h+='<div class="row"><span>Member Setup base</span><span>'+usd(setupBase)+'</span></div>';
+    if(stdT)h+='<div class="row"><span>Standard sensors ('+n('std')+')</span><span>'+usd(stdT)+'</span></div>';
+    if(specT)h+='<div class="row"><span>Specialty sensors ('+n('spec')+')</span><span>'+usd(specT)+'</span></div>';
+    if(wdT)h+='<div class="row"><span>Water Defense setup</span><span>'+usd(wdT)+'</span></div>';
+    if(credit)h+='<div class="row"><span>Conversion credit</span><span>'+usd(credit)+'</span></div>';
+    h+='<div class="row total"><span>Setup total (upfront)</span><span>'+usd(setup)+'</span></div>';
+    h+='<div class="warn">'+taxNote+(tax?' &nbsp;'+usd(tax):'')+'</div>';
+    h+='<div class="row total"><span>Pay annually: annual + setup'+(tax?' + tax':'')+'</span><span class="big">'+usd(grand)+'</span></div>';
+    h+='<div class="row total"><span>Pay monthly (12-mo term, setup upfront)</span><span class="big">'+usd(monthly)+'/mo</span></div>';
+    h+='<p class="note">Monthly = '+usd(annual)+' × 1.08 ÷ 12 = '+usd(monthly)+' · total over term '+usd(r2(monthly*12))+' (+ setup '+usd(setup)+' upfront)</p>';
+  }
+  flags.forEach(f=>{h+='<div class="'+(f.startsWith('CUSTOM')||f.startsWith('FLAG')?'flag':'warn')+'">'+f+'</div>'});
+  $('out').innerHTML=h;
+  // text
+  const cust=$('cust').value.trim(); const L=[];
+  L.push('1614 Home Co. — Quote'+(cust?' for '+cust:'')); L.push('Keep water where it belongs.'); L.push('-'.repeat(56));
+  L.push('Bathrooms: '+full+' full / '+half+' half  ->  '+tierLabel);
+  L.push('HVAC systems: '+hvac+'   Water heaters: '+wh+'   Sq ft: '+(sqft===null?'n/a':sqft));
+  L.push('Plan: '+(founding?'FOUNDING (year one)':'STANDARD')); L.push('');
+  if(custom)L.push('** CUSTOM REVIEW REQUIRED — no table price issued **');
+  else{
+    L.push('ANNUAL MEMBERSHIP'); L.push('  Membership base: '+usd(base));
+    if(hv)L.push('  Additional HVAC system(s): '+usd(hv)); if(wv)L.push('  Additional water heater(s): '+usd(wv));
+    L.push('  Annual total: '+usd(annual)); L.push('');
+    L.push('MEMBER SETUP (one time, paid upfront)'); L.push('  Member Setup base: '+usd(setupBase));
+    if(stdT)L.push('  Standard leak sensors: '+usd(stdT)); if(specT)L.push('  Specialty / probe sensors: '+usd(specT));
+    if(wdT)L.push('  Water Defense setup: '+usd(wdT)); if(credit)L.push('  Membership conversion credit: '+usd(credit));
+    L.push('  Setup total: '+usd(setup)); L.push(''); L.push('  '+taxNote); L.push('');
+    L.push('PAY ANNUALLY: '+usd(annual)+' + setup '+usd(setup)+(tax?' + tax '+usd(tax):'')+' = '+usd(grand)+' due at signup');
+    L.push('PAY MONTHLY : '+usd(monthly)+'/mo x 12 (12-month term; setup '+usd(setup)+' paid upfront)');
+  }
+  if(flags.length){L.push('');L.push('FLAGS');flags.forEach(f=>L.push('  - '+f))}
+  L.push('-'.repeat(56)); L.push('Final pricing reflects your home review. Quote within one business day.');
+  $('txt').value=L.join('\n');
+}
+document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',calc));
+$('copy').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText($('txt').value)};
+$('reset').onclick=()=>{document.querySelectorAll('input[type=number]').forEach(e=>e.value=e.id==='hvac'||e.id==='wh'?1:(e.id==='full'?2:(e.id==='half'?1:(e.id==='sqft'||e.id==='taxrate'?'':0))));document.querySelectorAll('input[type=checkbox]').forEach(e=>e.checked=e.id==='member');document.querySelectorAll('input[type=text]').forEach(e=>e.value='');$('sump').value='';$('taxbase').value='none';calc()};
+calc();
+</script>
+</body>
+</html>
