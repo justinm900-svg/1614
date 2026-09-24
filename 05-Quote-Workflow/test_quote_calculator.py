@@ -6,12 +6,15 @@ from quote_calculator import HomeInput, calculate, bathroom_tier, money
 def test_tiers():
     assert bathroom_tier(1, 0) == 3
     assert bathroom_tier(3, 0) == 3
-    assert bathroom_tier(2, 1) == 3          # 2.5 -> up to 3
-    assert bathroom_tier(3, 1) == 4          # 3.5 -> 4
+    assert bathroom_tier(2, 1) == 3          # 3 bathrooms -> up to 3
+    assert bathroom_tier(2, 2) == 4          # Justin's example: 2 full + 2 half = 4 -> 4-bath tier
+    assert bathroom_tier(3, 1) == 4
     assert bathroom_tier(4, 0) == 4
-    assert bathroom_tier(4, 1) == 5          # 4.5 -> 5
+    assert bathroom_tier(4, 1) == 5
     assert bathroom_tier(5, 0) == 5
-    assert bathroom_tier(5, 1) is None       # 5.5 -> 6 -> custom
+    assert bathroom_tier(1, 4) == 5
+    assert bathroom_tier(5, 1) is None       # 6 -> custom
+    assert bathroom_tier(3, 3) is None
     assert bathroom_tier(6, 0) is None
 
 
@@ -46,18 +49,30 @@ def test_setup_and_sensors():
     assert q.setup_total == D(199 + 105 + 49)
 
 
-def test_water_defense_and_credit():
+def test_water_defense_and_conversion():
     q = calculate(HomeInput(full_baths=2, water_defense=True))
     assert q.water_defense_total == D(249)
     assert q.setup_total == D(199 + 249)
-    q2 = calculate(HomeInput(full_baths=2, conversion_credit=True))
+    # Conversion within 30 days: no $199 setup, only new sensors, $50 credit on FIRST-YEAR MEMBERSHIP
+    q2 = calculate(HomeInput(full_baths=2, wd_conversion=True, standard_sensors=1))
+    assert q2.setup_base == 0
     assert q2.conversion_credit == D(-50)
-    assert q2.setup_total == D(149)
-    # Water Defense only, no membership: credit not applied, flagged
-    q3 = calculate(HomeInput(full_baths=2, membership=False, water_defense=True, conversion_credit=True))
+    assert q2.annual_total == D(799 - 50)
+    assert q2.setup_total == D(35)                      # only the newly approved sensor
+    assert q2.monthly_payment == D("67.41")             # 749 * 1.08 / 12
+    assert q2.grand_total_annual_plan == D(749 + 35)
+    assert any("CONVERSION" in f and "30 days" in f for f in q2.flags)
+    # Conversion + Water Defense box ticked: $249 not charged twice
+    q2b = calculate(HomeInput(full_baths=2, wd_conversion=True, water_defense=True))
+    assert q2b.water_defense_total == 0 and q2b.setup_total == 0 and q2b.annual_total == D(749)
+    # Water Defense only, no membership: conversion not applied, flagged
+    q3 = calculate(HomeInput(full_baths=2, membership=False, water_defense=True, wd_conversion=True))
     assert q3.membership_base == 0 and q3.setup_base == 0
-    assert q3.setup_total == D(249)
-    assert any("conversion credit" in f for f in q3.flags)
+    assert q3.setup_total == D(249) and q3.conversion_credit == 0
+    assert any("conversion applies only" in f for f in q3.flags)
+    # Conversion never touches Founding/tier pricing rules otherwise
+    q4 = calculate(HomeInput(full_baths=3, half_baths=1, founding=True, wd_conversion=True, hvac_systems=2))
+    assert q4.annual_total == D(799 + 150 - 50) and q4.setup_total == 0
 
 
 def test_monthly_formula_and_rounding():

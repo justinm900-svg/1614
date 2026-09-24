@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal, ROUND_HALF_UP
-import math
 
 # --------------------------------------------------------------------------
 # PRICING — authoritative values. Do not invent new tiers here.
@@ -27,17 +26,21 @@ PRICING = {
     "standard_sensor": 35,
     "specialty_sensor": 49,
     "water_defense_standalone": 249,
-    "conversion_credit": 50,                # Water Defense -> membership credit
+    "conversion_credit": 50,                # Water Defense -> membership: credit on first-year membership
     "monthly_factor": Decimal("1.08"),
     "monthly_months": 12,
     "founding_cap_total": 25,               # first 25 homes TOTAL across launch area
     "custom_review_sqft": 5000,
 }
 
-# ASSUMPTION (flagged for Justin): a half bath counts as 0.5 toward the tier,
-# and the tier is the ceiling of the weighted count (2 full + 1 half = 2.5 -> tier 3;
-# 3 full + 1 half = 3.5 -> tier 4). Change to 1.0 to count half baths as whole.
-HALF_BATH_WEIGHT = 0.5
+# TIER RULE (Justin, 2026-09-24): each full bathroom AND each half bathroom counts as
+# ONE bathroom toward the tier. 2 full + 2 half = 4 bathrooms -> 4-bath tier.
+#
+# WATER DEFENSE CONVERSION RULE (Justin, 2026-09-24): a homeowner who completed the $249
+# Water Defense Setup and joins membership within 30 days: no second $199 Member Setup fee,
+# only newly approved sensors/equipment are charged, and a separate $50 credit is applied
+# to the FIRST-YEAR MEMBERSHIP PRICE (not to setup).
+CONVERSION_WINDOW_DAYS = 30
 
 
 def money(x) -> Decimal:
@@ -58,7 +61,7 @@ class HomeInput:
     specialty_sensors: int = 0
     water_defense: bool = False          # add standalone Water Defense setup
     membership: bool = True              # quoting a membership (vs Water Defense only)
-    conversion_credit: bool = False      # customer converting from standalone Water Defense
+    wd_conversion: bool = False          # completed $249 Water Defense Setup, joining membership within 30 days
     boiler: bool = False
     well_or_pressure_tank: bool = False
     unusual_complexity: bool = False
@@ -75,12 +78,12 @@ class Quote:
     membership_base: Decimal
     hvac_adder_total: Decimal
     water_heater_adder_total: Decimal
-    annual_total: Decimal                # membership + adders (the recurring annual)
+    conversion_credit: Decimal           # negative or 0; applied to FIRST-YEAR membership price
+    annual_total: Decimal                # membership + adders + conversion credit (first-year annual)
     setup_base: Decimal
     standard_sensor_total: Decimal
     specialty_sensor_total: Decimal
     water_defense_total: Decimal
-    conversion_credit: Decimal           # negative number or 0
     setup_total: Decimal                 # upfront, one time
     monthly_payment: Decimal             # annual_total * 1.08 / 12, rounded to cents
     monthly_total_over_term: Decimal     # monthly * 12 (what the customer pays in total on monthly)
@@ -95,8 +98,7 @@ def bathroom_tier(full: int, half: int) -> int | None:
     """Return 3, 4, 5, or None (None = 6+ custom review)."""
     if full < 0 or half < 0:
         raise ValueError("bathroom counts cannot be negative")
-    weighted = full + half * HALF_BATH_WEIGHT
-    count = math.ceil(weighted)
+    count = full + half                    # every bathroom counts as one
     if count >= PRICING["custom_review_baths"]:
         return None
     if count <= 3:
@@ -148,20 +150,29 @@ def calculate(h: HomeInput) -> Quote:
         extra_hvac = extra_wh = 0
     hvac_adder_total = money(extra_hvac * p["hvac_adder"])
     wh_adder_total = money(extra_wh * p["water_heater_adder"])
-    annual_total = money(membership_base + hvac_adder_total + wh_adder_total)
+
+    # ---- Water Defense conversion (within 30 days of completed $249 setup) ----
+    converting = h.wd_conversion and h.membership and not custom_review
+    credit = money(-p["conversion_credit"]) if converting else Decimal(0)
+    if h.wd_conversion and not converting:
+        flags.append("NOTE: Water Defense conversion applies only when joining a membership; not applied.")
+    if converting:
+        flags.append(
+            f"CONVERSION: confirm Water Defense Setup was completed within {CONVERSION_WINDOW_DAYS} days. "
+            "No Member Setup fee; only newly approved sensors/equipment charged; $50 credit on first-year membership."
+        )
+    annual_total = money(membership_base + hvac_adder_total + wh_adder_total + credit)
 
     # ---- one-time setup ----
-    setup_base = money(p["setup_base"]) if (h.membership and not custom_review) else Decimal(0)
-    std_total = money(h.standard_sensors * p["standard_sensor"])
+    setup_base = money(p["setup_base"]) if (h.membership and not custom_review and not converting) else Decimal(0)
+    std_total = money(h.standard_sensors * p["standard_sensor"])      # conversion: only NEW sensors entered here
     spec_total = money(h.specialty_sensors * p["specialty_sensor"])
-    wd_total = money(p["water_defense_standalone"]) if h.water_defense else Decimal(0)
-    credit = Decimal(0)
-    if h.conversion_credit:
-        if h.membership and not custom_review:
-            credit = money(-p["conversion_credit"])
-        else:
-            flags.append("NOTE: $50 conversion credit only applies when converting to a membership; not applied.")
-    setup_total = money(setup_base + std_total + spec_total + wd_total + credit)
+    if h.water_defense and converting:
+        wd_total = Decimal(0)
+        flags.append("NOTE: Water Defense Setup already purchased; $249 not charged again.")
+    else:
+        wd_total = money(p["water_defense_standalone"]) if h.water_defense else Decimal(0)
+    setup_total = money(setup_base + std_total + spec_total + wd_total)
 
     # ---- monthly option ----
     if annual_total > 0:
@@ -185,12 +196,12 @@ def calculate(h: HomeInput) -> Quote:
         membership_base=membership_base,
         hvac_adder_total=hvac_adder_total,
         water_heater_adder_total=wh_adder_total,
+        conversion_credit=credit,
         annual_total=annual_total,
         setup_base=setup_base,
         standard_sensor_total=std_total,
         specialty_sensor_total=spec_total,
         water_defense_total=wd_total,
-        conversion_credit=credit,
         setup_total=setup_total,
         monthly_payment=monthly,
         monthly_total_over_term=monthly_term_total,
@@ -219,18 +230,21 @@ def render(h: HomeInput, q: Quote, customer: str = "") -> str:
             L.append(f"  Additional HVAC system(s) ...... ${q.hvac_adder_total:>9,.2f}")
         if q.water_heater_adder_total:
             L.append(f"  Additional water heater(s) ..... ${q.water_heater_adder_total:>9,.2f}")
-        L.append(f"  Annual total ................... ${q.annual_total:>9,.2f}")
+        if q.conversion_credit:
+            L.append(f"  Water Defense conversion credit  ${q.conversion_credit:>9,.2f}")
+        L.append(f"  Annual total (first year) ...... ${q.annual_total:>9,.2f}")
         L.append("")
         L.append("MEMBER SETUP (one time, paid upfront)")
-        L.append(f"  Member Setup base .............. ${q.setup_base:>9,.2f}")
+        if q.setup_base:
+            L.append(f"  Member Setup base .............. ${q.setup_base:>9,.2f}")
+        else:
+            L.append("  Member Setup base .............. waived (Water Defense conversion)")
         if q.standard_sensor_total:
             L.append(f"  Standard leak sensors .......... ${q.standard_sensor_total:>9,.2f}")
         if q.specialty_sensor_total:
             L.append(f"  Specialty / probe sensors ...... ${q.specialty_sensor_total:>9,.2f}")
         if q.water_defense_total:
             L.append(f"  Water Defense setup ............ ${q.water_defense_total:>9,.2f}")
-        if q.conversion_credit:
-            L.append(f"  Membership conversion credit ... ${q.conversion_credit:>9,.2f}")
         L.append(f"  Setup total .................... ${q.setup_total:>9,.2f}")
         L.append("")
         L.append(f"  {q.tax_note}")
@@ -254,13 +268,13 @@ if __name__ == "__main__":
     ap.add_argument("--hvac", type=int, default=1); ap.add_argument("--wh", type=int, default=1)
     ap.add_argument("--sqft", type=int); ap.add_argument("--founding", action="store_true")
     ap.add_argument("--std", type=int, default=0); ap.add_argument("--spec", type=int, default=0)
-    ap.add_argument("--water-defense", action="store_true"); ap.add_argument("--credit", action="store_true")
+    ap.add_argument("--water-defense", action="store_true"); ap.add_argument("--conversion", action="store_true", help="Water Defense Setup completed within 30 days; joining membership")
     ap.add_argument("--boiler", action="store_true"); ap.add_argument("--well", action="store_true")
     ap.add_argument("--json", action="store_true"); ap.add_argument("--customer", default="")
     a = ap.parse_args()
     h = HomeInput(full_baths=a.full, half_baths=a.half, hvac_systems=a.hvac, water_heaters=a.wh,
                   sqft=a.sqft, founding=a.founding, standard_sensors=a.std, specialty_sensors=a.spec,
-                  water_defense=a.water_defense, conversion_credit=a.credit, boiler=a.boiler,
+                  water_defense=a.water_defense, wd_conversion=a.conversion, boiler=a.boiler,
                   well_or_pressure_tank=a.well)
     q = calculate(h)
     if a.json:

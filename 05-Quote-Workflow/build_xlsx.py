@@ -21,18 +21,19 @@ rows = [
  ("Additional standard leak sensor", 35), ("Specialty / probe sensor", 49),
  ("Water Defense standalone setup", 249), ("Membership conversion credit", 50),
  ("Monthly factor", 1.08), ("Months in term", 12), ("Founding cap (homes, TOTAL)", 25),
- ("Custom review at sq ft >=", 5000), ("Half-bath weight toward tier (ASSUMPTION)", 0.5),
+ ("Custom review at sq ft >=", 5000), ("Water Defense conversion window (days)", 30),
 ]
 for i, (k, v) in enumerate(rows, start=3):
     p.cell(i, 1, k).font = black; c = p.cell(i, 2, v); c.font = blue
-    if isinstance(v, (int, float)) and v not in (6, 12, 25, 5000, 0.5, 1.08): c.number_format = money
-p["B21"].comment = Comment("Assumption: half bath = 0.5 bathroom; tier = ceiling of weighted count. Set to 1 to count half baths as whole. Confirm with Justin.", "1614")
+    if isinstance(v, (int, float)) and v not in (6, 12, 25, 5000, 30, 1.08): c.number_format = money
+p["B21"].comment = Comment("Rule (Justin 2026-09-24): homeowner who completed the $249 Water Defense Setup and joins membership within 30 days pays no $199 Member Setup, is charged only newly approved sensors/equipment, and gets a separate $50 credit on the first-year membership price.", "1614")
+p["A24"] = "Tier rule (Justin 2026-09-24): each full AND each half bathroom counts as one bathroom toward the tier. 2 full + 2 half = 4-bath tier."; p["A24"].font = Font(name=F, italic=True, color="666666")
 p["A23"] = "Blue = input from launch brief (Justin, 2026-09-24). Do not create new pricing here."; p["A23"].font = Font(name=F, italic=True, color="666666")
 p.column_dimensions["A"].width = 44; p.column_dimensions["B"].width = 14
 N = {  # named refs into Pricing
  "s3":"Pricing!$B$3","s4":"Pricing!$B$4","s5":"Pricing!$B$5","f3":"Pricing!$B$6","f4":"Pricing!$B$7","f5":"Pricing!$B$8",
  "cb":"Pricing!$B$9","hv":"Pricing!$B$10","wh":"Pricing!$B$11","su":"Pricing!$B$12","std":"Pricing!$B$13","spc":"Pricing!$B$14",
- "wd":"Pricing!$B$15","cr":"Pricing!$B$16","fac":"Pricing!$B$17","mo":"Pricing!$B$18","cap":"Pricing!$B$19","sq":"Pricing!$B$20","hw":"Pricing!$B$21"}
+ "wd":"Pricing!$B$15","cr":"Pricing!$B$16","fac":"Pricing!$B$17","mo":"Pricing!$B$18","cap":"Pricing!$B$19","sq":"Pricing!$B$20","win":"Pricing!$B$21"}
 
 # ---------------- Quote sheet ----------------
 q = wb.create_sheet("Quote")
@@ -44,7 +45,7 @@ inputs = [
  ("Approx. square feet (blank if unknown)", 2400, None), ("Sump pump? (yes/no/blank)", "yes", None),
  ("Quote a membership? (1=yes, 0=Water Defense only)", 1, None), ("Founding? (1/0)", 1, None),
  ("Standard leak sensors (count)", 3, None), ("Specialty / probe sensors (count)", 1, None),
- ("Water Defense setup? (1/0)", 0, None), ("Conversion credit applies? (1/0)", 0, None),
+ ("Water Defense setup? (1/0)", 0, None), ("Water Defense conversion? (1/0) — setup completed within 30 days", 0, None),
  ("Boiler? (1/0)", 0, None), ("Well / pressure tank? (1/0)", 0, None), ("Unusual complexity? (1/0)", 0, None),
  ("Sales tax rate (fraction, e.g. 0.08; blank = not applied)", None, None),
  ("Tax applies to (none / setup / all)", "none", None),
@@ -55,7 +56,7 @@ for i, (k, v, _) in enumerate(inputs, start=5):
 # input cell map
 I = {k: f"$B${i}" for i, (k, _, _) in enumerate(inputs, start=5)}
 full, half, hvac, wh, sqft, sump = I["Full bathrooms"], I["Half bathrooms"], I["HVAC systems"], I["Water heaters"], I["Approx. square feet (blank if unknown)"], I["Sump pump? (yes/no/blank)"]
-mem, fnd, nstd, nspc, wdf, crd = I["Quote a membership? (1=yes, 0=Water Defense only)"], I["Founding? (1/0)"], I["Standard leak sensors (count)"], I["Specialty / probe sensors (count)"], I["Water Defense setup? (1/0)"], I["Conversion credit applies? (1/0)"]
+mem, fnd, nstd, nspc, wdf, crd = I["Quote a membership? (1=yes, 0=Water Defense only)"], I["Founding? (1/0)"], I["Standard leak sensors (count)"], I["Specialty / probe sensors (count)"], I["Water Defense setup? (1/0)"], I["Water Defense conversion? (1/0) — setup completed within 30 days"]
 boil, well, cplx, trate, tbase = I["Boiler? (1/0)"], I["Well / pressure tank? (1/0)"], I["Unusual complexity? (1/0)"], I["Sales tax rate (fraction, e.g. 0.08; blank = not applied)"], I["Tax applies to (none / setup / all)"]
 
 r = 5 + len(inputs) + 1
@@ -68,20 +69,21 @@ def add(label, formula, fmt=money, b=False):
     if fmt: c.number_format = fmt
     calc.append((label, f"$B${r}")); r += 1
     return f"$B${r-1}"
-wcount = add("Weighted bathroom count", f"=CEILING({full}+{half}*{N['hw']},1)", "0")
+wcount = add("Bathroom count (full + half, each counts as one)", f"={full}+{half}", "0")
 tier = add("Bathroom tier (3/4/5, 0 = custom review)", f"=IF({wcount}>={N['cb']},0,IF({wcount}<=3,3,{wcount}))", "0")
 custom = add("Custom review required? (1/0)", f"=IF(OR({tier}=0,AND({sqft}<>\"\",{sqft}>={N['sq']})),1,0)", "0")
 active = f"AND({mem}=1,{custom}=0)"
+conv = f"AND({crd}=1,{mem}=1,{custom}=0)"
 base = add("Membership base", f"=IF({active},IF({fnd}=1,CHOOSE({tier}-2,{N['f3']},{N['f4']},{N['f5']}),CHOOSE({tier}-2,{N['s3']},{N['s4']},{N['s5']})),0)")
 hvt = add("Additional HVAC adder", f"=IF({active},MAX(0,{hvac}-1)*{N['hv']},0)")
 wht = add("Additional water heater adder", f"=IF({active},MAX(0,{wh}-1)*{N['wh']},0)")
-annual = add("ANNUAL TOTAL (membership + adders)", f"=ROUND({base}+{hvt}+{wht},2)", b=True)
-sub = add("Member Setup base", f"=IF({active},{N['su']},0)")
+crt = add("Water Defense conversion credit (first-year membership)", f"=IF({conv},-{N['cr']},0)")
+annual = add("ANNUAL TOTAL, first year (membership + adders + conversion credit)", f"=ROUND({base}+{hvt}+{wht}+{crt},2)", b=True)
+sub = add("Member Setup base (waived on Water Defense conversion)", f"=IF(AND({active},NOT({conv})),{N['su']},0)")
 stdt = add("Standard sensors", f"={nstd}*{N['std']}")
 spct = add("Specialty sensors", f"={nspc}*{N['spc']}")
-wdt = add("Water Defense setup", f"=IF({wdf}=1,{N['wd']},0)")
-crt = add("Conversion credit", f"=IF(AND({crd}=1,{active}),-{N['cr']},0)")
-setup = add("SETUP TOTAL (one time, upfront)", f"=ROUND({sub}+{stdt}+{spct}+{wdt}+{crt},2)", b=True)
+wdt = add("Water Defense setup (not charged again on conversion)", f"=IF(AND({wdf}=1,NOT({conv})),{N['wd']},0)")
+setup = add("SETUP TOTAL (one time, upfront; conversion = new sensors/equipment only)", f"=ROUND({sub}+{stdt}+{spct}+{wdt},2)", b=True)
 monthly = add("MONTHLY PAYMENT (annual × 1.08 ÷ 12, rounded to cents)", f"=IF({annual}>0,ROUND({annual}*{N['fac']}/{N['mo']},2),0)", b=True)
 add("Monthly total over 12-month term", f"=ROUND({monthly}*{N['mo']},2)")
 tax = add("Sales tax PLACEHOLDER (not a taxability determination)", f"=IF(OR({trate}=\"\",{tbase}=\"none\"),0,ROUND(IF({tbase}=\"setup\",{setup},{annual}+{setup})*{trate},2))")
@@ -96,7 +98,9 @@ flags = [
  f'=IF({cplx}=1,"FLAG: Unusual complexity — review before quoting.","")',
  f'=IF({sump}="","INFO: Sump pump status not confirmed — ask on call.","")',
  f'=IF({fnd}=1,"FOUNDING: verify seat available (first "&{N["cap"]}&" homes TOTAL across launch area).","")',
- f'=IF(AND({crd}=1,NOT({active})),"NOTE: $50 conversion credit only applies when converting to a membership; not applied.","")',
+ f'=IF(AND({crd}=1,NOT({active})),"NOTE: Water Defense conversion applies only when joining a membership; not applied.","")',
+ f'=IF({conv},"CONVERSION: confirm Water Defense Setup completed within "&{N["win"]}&" days. No Member Setup fee; only newly approved sensors/equipment charged; $50 credit on first-year membership.","")',
+ f'=IF(AND({conv},{wdf}=1),"NOTE: Water Defense Setup already purchased; $249 not charged again.","")',
  f'=IF(OR({trate}="",{tbase}="none"),"Sales tax: TBD — taxability pending CPA confirmation; rate is address-based (Ohio The Finder).","Sales tax PLACEHOLDER applied — verify before invoicing.")',
 ]
 for fml in flags:
@@ -108,7 +112,7 @@ q.column_dimensions["A"].width = 62; q.column_dimensions["B"].width = 40
 # ---------------- Test cases sheet (expected values from quote_calculator.py) ----------------
 t = wb.create_sheet("Test Cases")
 t["A1"] = "Expected results from quote_calculator.py — paste inputs into Quote sheet to spot-check"; t["A1"].font = hdr
-hdrs = ["Case", "Full", "Half", "HVAC", "WH", "Founding", "Std sensors", "Spec sensors", "Water Def", "Credit", "Expected annual", "Expected setup", "Expected monthly"]
+hdrs = ["Case", "Full", "Half", "HVAC", "WH", "Founding", "Std sensors", "Spec sensors", "Water Def", "Conversion", "Expected annual", "Expected setup", "Expected monthly"]
 for j, h in enumerate(hdrs, 1): c = t.cell(3, j, h); c.font = bold; c.fill = grey
 cases = [
  ("Std 2/1 baths", 2,1,1,1,0,0,0,0,0, 799, 199, 71.91),
@@ -117,7 +121,10 @@ cases = [
  ("Founding 2/1 + 2 HVAC + 3 std + 1 spec", 2,1,2,1,1,3,1,0,0, 849, 353, 76.41),
  ("Founding 3/1 (tier 4) + 2 WH", 3,1,1,2,1,0,0,0,0, 839, 199, 75.51),
  ("Std 2 baths + Water Defense", 2,0,1,1,0,0,0,1,0, 799, 448, 71.91),
- ("Std 2 baths + conversion credit", 2,0,1,1,0,0,0,0,1, 799, 149, 71.91),
+ ("Std 2/2 baths (4 bathrooms -> 4-bath tier)", 2,2,1,1,0,0,0,0,0, 899, 199, 80.91),
+ ("Std 2/1 + WD conversion + 1 new std sensor", 2,1,1,1,0,1,0,0,1, 749, 35, 67.41),
+ ("Founding 3/1 + 2 HVAC + WD conversion", 3,1,2,1,1,0,0,0,1, 899, 0, 80.91),
+ ("WD conversion with WD box ticked (no double charge)", 2,0,1,1,0,0,0,1,1, 749, 0, 67.41),
  ("6 baths -> custom review", 6,0,1,1,0,0,0,0,0, 0, 0, 0),
 ]
 for i, row in enumerate(cases, start=4):

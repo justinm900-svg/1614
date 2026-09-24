@@ -22,6 +22,10 @@
 ## Quote message (paste, then edit the numbers from the calculator text box)
 > Hi {first name}, thanks for talking with me today. Based on your home ({baths} baths, {hvac} HVAC system(s)), your 1614 Home Co. quote is: **Annual membership ${annual}** ({plan}) plus one-time **Member Setup ${setup}**. You can pay annually (${total} at signup) or monthly (${monthly}/mo for 12 months, setup paid upfront). Final pricing reflects your home review. I'll send the invoice and the membership agreement together when you're ready. — Justin, 1614 Home Co., (614) 535-7919
 
+## Two rules that are easy to get wrong
+- **Bathroom tier:** count every full bathroom and every half bathroom as one. 2 full + 2 half = 4 bathrooms = 4-bath tier.
+- **Water Defense conversion:** a homeowner who completed the $249 Water Defense Setup and joins within 30 days pays **no** $199 Member Setup, is charged **only newly approved sensors/equipment**, and gets a separate **$50 credit on the first-year membership price**. Tick “Water Defense conversion” in the calculator; enter only the new sensors.
+
 ## Custom review path
 6+ bathrooms, ≥ 5,000 sq ft, boiler, well / pressure tank, or anything unusual → gather photos or a short walkthrough call, decide scope, then quote. Never derive a 6+ bath or 5,000+ sq ft price from the tier table.
 

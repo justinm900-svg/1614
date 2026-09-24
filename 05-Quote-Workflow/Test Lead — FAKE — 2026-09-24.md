@@ -1,5 +1,7 @@
 # Test Lead (FAKE) — end-to-end quote workflow dry run
-**Date:** 2026-09-24 · **Status:** CURRENT test record · **Never invoice this customer.**
+**Date:** 2026-09-24 (rules corrected same day) · **Status:** CURRENT test record · **Never invoice this customer.**
+
+Rules applied: every full and half bathroom counts as one bathroom toward the tier; Water Defense conversion within 30 days waives the $199 Member Setup, charges only newly approved sensors/equipment, and applies a separate $50 credit to the first-year membership price.
 
 > This customer does not exist. Every value below is invented for testing.
 > Steps marked ☐ could not be executed from this session because the Jotform, Square, and email
@@ -37,7 +39,7 @@ Inputs above were run through `quote_calculator.py`, `1614-quote-calculator.html
 
 | Line | Amount |
 |---|---:|
-| Founding membership, up to 3 baths (2 full + 1 half = 2.5 → tier 3) | $699.00 |
+| Founding membership, up to 3 baths (2 full + 1 half = 3 bathrooms → tier “up to 3”) | $699.00 |
 | Additional HVAC system (1 × $150) | $150.00 |
 | **Annual total** | **$849.00** |
 | Member Setup base | $199.00 |
@@ -49,6 +51,22 @@ Inputs above were run through `quote_calculator.py`, `1614-quote-calculator.html
 | **Pay monthly: $849 × 1.08 ÷ 12** | **$76.41/mo × 12** (setup $353 upfront) |
 
 Flags produced: `FOUNDING: verify seat available (first 25 homes TOTAL)`. No custom-review flags.
+
+### Scenario B — same fake home, Water Defense conversion (also verified three ways)
+Assumes Zelda completed the $249 Water Defense Setup 10 days ago and now joins a Standard membership; one additional standard sensor approved.
+
+| Line | Amount |
+|---|---:|
+| Standard membership, up to 3 baths | $799.00 |
+| Water Defense conversion credit (first year) | −$50.00 |
+| **Annual total, first year** | **$749.00** |
+| Member Setup base | waived (already installed) |
+| Newly approved standard sensor (1 × $35) | $35.00 |
+| **Setup total (upfront)** | **$35.00** |
+| **Pay annually: due at signup** | **$784.00** |
+| **Pay monthly: $749 × 1.08 ÷ 12** | **$67.41/mo × 12** (setup $35 upfront) |
+
+Flag produced: `CONVERSION: confirm Water Defense Setup was completed within 30 days…`. Year two renews at the Standard annual price with no credit.
 
 ## 3. Square DRAFT invoice (do NOT send)
 - ☐ Square Dashboard → Invoices → Create invoice → template **Annual Membership + Setup**.

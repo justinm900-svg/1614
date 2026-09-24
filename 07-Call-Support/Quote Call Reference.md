@@ -6,7 +6,7 @@
 |---|---|---|
 | ☐ | Property address (street, city) | sets service area + tax jurisdiction |
 | ☐ | Full bathrooms | |
-| ☐ | Half bathrooms | half = 0.5 toward tier |
+| ☐ | Half bathrooms | every full and half bath counts as one toward the tier (2 full + 2 half = 4-bath tier) |
 | ☐ | HVAC systems (furnaces/air handlers) | 1 included; each extra +$150/yr |
 | ☐ | Water heaters | 1 included; each extra +$40/yr |
 | ☐ | Approximate square footage | ≥ 5,000 → custom review |
@@ -31,7 +31,7 @@
 | Additional standard leak sensor | $35 each |
 | Specialty / probe sensor | $49 each |
 | Water Defense standalone setup | $249 |
-| Membership conversion credit (Water Defense → membership) | −$50 |
+| Water Defense conversion (setup completed within 30 days, then joins) | no $199 Member Setup · only newly approved sensors/equipment charged · −$50 on first-year membership |
 | Monthly option | annual total × 1.08 ÷ 12, 12-month term, setup upfront |
 
 Quick monthly: up to 3 baths $71.91 (Std) / $62.91 (Founding) · 4 baths $80.91 / $71.91 · 5 baths $89.91 / $80.91 (before adders).

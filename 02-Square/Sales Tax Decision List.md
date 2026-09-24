@@ -12,7 +12,7 @@ Square needs a yes/no taxable flag per catalog item and a rate per invoice. Ohio
 | 3 | Standard / specialty leak sensors ($35 / $49) | Taxable as tangible personal property transferred to the customer? Are they installed as part of real property or as personal property? | Ownership of the sensor passes to the homeowner. |
 | 4 | HVAC filters supplied during visits | Are filters a taxable sale of goods, or consumed in performing a service (1614 pays tax on purchase instead)? | Affects whether 1614 buys filters with a resale exemption. |
 | 5 | Water Defense standalone setup ($249) | Same questions as 2 and 3 for a non-member setup. | |
-| 6 | $50 membership conversion credit | Reduces the taxable base of setup, or treated as a discount on a non-taxable line? | Depends on answers 2 and 5. |
+| 6 | Water Defense conversion: $199 Member Setup waived and $50 credit applied to the first-year membership price | Is the $50 a discount on the membership line (follows decision 1), and does waiving setup change anything for the already-taxed (or not) $249 setup? | Depends on answers 1, 2 and 5. |
 | 7 | Monthly plan (annual × 1.08 ÷ 12) | Is the 8% monthly uplift part of the taxable price of the same service, or a separately stated financing/administrative charge? | |
 | 8 | Adders (extra HVAC +$150, extra water heater +$40) | Follow decision 1. | |
 | 9 | Rate source | Confirm that using Ohio “The Finder” by service address per invoice is acceptable practice, and whether county + COTA district rates should be stored as separate Square rates (proposed) or one “Franklin (COTA)” rate covers Hilliard / UA / Dublin-in-Franklin. | Franklin County (COTA) rate has changed in 2025; Dublin spans Franklin, Delaware and Union counties; Plain City spans Madison and Union. |
