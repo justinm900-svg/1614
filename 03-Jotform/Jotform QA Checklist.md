@@ -1,16 +1,16 @@
 # Jotform QA Checklist — “1614 Home Co. — Home Quote Request”
 **Prepared:** 2026-09-24 · **Status:** CURRENT · **Form:** https://form.jotform.com/justinm900/1614-home-quote
 
-**Done from this session:** printable campaign QR generated and machine-verified (§4); the ten tracked test links prepared (§5).
-**Not run from this session:** everything that needs the Jotform account or a phone (the Jotform connector was not connected, and jotform.com is not reachable from this environment). Each item below is a 30-second pass/fail.
+**Verified from this session via the Jotform connector (2026-09-24):** §1 src = mailer on the most recent submission, §5 mechanism, §6 page-2-optional and no-payment/no-scheduling checks, §4 QR. Form ID 262663327317055, status ENABLED, 50 fields, 1 submission.
+**Still manual (the connector does not expose email settings or render the form):** §2 notification recipient, §3 autoresponder condition, §6 phone-screen rendering, thank-you page and phone link. Each is a 30-second pass/fail.
 
 ## 1. Most recent test submission stores `src = mailer`
 - ☐ Open the `?src=mailer` link from `src-test-links.md` on a phone; submit as **TEST — Zelda Fakewell** (see `05-Quote-Workflow/Test Lead — FAKE — 2026-09-24.md`).
-- ☐ Jotform → form → **Submissions** → newest row → hidden field `src` shows exactly `mailer`. Pass: ☐
+- ✅ **PASS (verified via connector).** Newest submission 6660665554714810628 (2026-09-24 09:42:35, “Test Mailer”, email field filled, page 2 skipped) stores hidden field `src` = `mailer` exactly. The field is a text box with unique name `src` (the name Jotform's URL prefill keys on).
 
 ## 2. Internal notification
 - ☐ Settings → **Emails** → Notification: recipient is **justinm900@yahoo.com**, status enabled, sender = noreply@jotform.com (or verified sender).
-- ☐ Notification body includes the `src` field (add it if missing; it is the attribution of record).
+- ☐ Notification body includes the `src` field (add it if missing; it is the attribution of record). *Not checkable via the connector.*
 - ☐ The §1 test produced a notification email within 5 minutes (check spam once). Pass: ☐
 
 ## 3. Customer autoresponder only when email was given
@@ -41,18 +41,25 @@ Links are in `src-test-links.md`. For each: open link → submit minimal test �
 | facebook | ☐ |
 | google | ☐ |
 
+Mechanism verified via connector: the hidden field's unique name is exactly `src`, so `?src=<value>` prefills it for every value in the table; the `mailer` case proves the round trip end to end. Per-value browser confirmation remains manual.
+
 Faster equivalent that does not consume 10 of the 100 free monthly submissions: open each link, then in the browser's developer tools (or Jotform's **Preview → Prefill** view) confirm the hidden `src` input's value equals the query parameter. Submit only `mailer`, `qr`, and `google` for real. Delete test submissions afterwards (Submissions → select → Delete; they move to Trash for 30 days).
 
 ## 6. Mobile checks (phone, portrait)
 | Check | Pass |
 |---|---|
 | No horizontal scrolling on page 1, page 2, thank-you page | ☐ |
-| Page 2 is optional: every page-2 field is not required, and “Submit” is reachable from page 1 or page 2 without filling page 2 | ☐ |
+| Page 2 is optional: every page-2 field is not required, and “Submit” is reachable from page 1 or page 2 without filling page 2 | ✅ verified via connector: page break sits after Text Message Consent; a “Skip Optional Details” button heads page 2; the test submission left every page-2 field empty and was accepted |
 | Submit works | ☐ |
 | Thank-you page displays correctly; text uses “1614 Home Co.” and the tagline; no banned words | ☐ |
 | Phone link on the thank-you page is `tel:+16145357919` and opens the dialer | ☐ |
-| No payment field (Settings → Payments empty; no Square/Stripe/PayPal element in the form) | ☐ |
-| No scheduling / appointment element | ☐ |
+| No payment field (Settings → Payments empty; no Square/Stripe/PayPal element in the form) | ✅ verified via connector: the 50 fields are headers, text, name, phone, email, address, dropdowns, radios, checkboxes, text boxes, a textarea, buttons, a page break, and the hidden `src` box; no payment control |
+| No scheduling / appointment element | ✅ verified via connector (no appointment or date-picker control) |
+
+## Notes from the connector review
+- Form intro text already states “Half baths count,” matching the corrected tier rule.
+- Email is optional on the form (test row filled it with the owner's address, so the autoresponder test should be repeated with the fake test inbox).
+- The “How did you hear about us?” radio is separate from `src`; `src` remains the attribution of record.
 
 ## Pass rule
 If §1–§6 all pass, **do not redesign the form.** Record the date and “PASS” at the top of this file and stop.
