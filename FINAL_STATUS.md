@@ -1,3 +1,5 @@
+> SUPERSEDED IN PART (Sept 25, 2026, end of day). See CURRENT_STATE.md, which is the single source of truth. Corrections to this file: the Jotform thank-you page reads "Thanks, we've got it." (no dash); all Jotform test submissions were already moved to Trash; Square sales tax IS configured (Franklin 8% on 7 equipment items, 7% disabled); Membership Agreement v4 and Water Defense Setup Agreement v3 are the current customer versions (not attorney-reviewed by owner choice), not placeholder drafts; vendor license 25-005424 is issued, effective Nov 1, 2026.
+
 # FINAL_STATUS.md — PARTIAL (updated 2026-09-25, evening)
 
 **Read this first.** This run executed in a cloud container that has no Chrome session, no `dig`, and an egress proxy that blocks 1614home.co, 1614home.com, Porkbun (site and API), Google, GitHub Pages, and Square. Only the terminal-only agreement work (Phase 3, step 4) could be completed and verified here. Every other phase is untouched and waits for a session on Justin's own machine with the logged-in Chrome profile. Nothing was published, sent, deleted, purchased, or changed in any account during this run.
