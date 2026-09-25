@@ -19,7 +19,7 @@ Method: DOCX XML edited directly (only `word/document.xml` contained the address
 | 1.1 – 1.6 | DONE on 2026-09-25 by the ChatGPT browser session (see Phase 1 progress below) | | |
 | 1.7 | Email pass test (SPF/DKIM/DMARC) | Requires Justin's mailbox | Open a Workspace reply in Yahoo → View raw message → check Authentication-Results |
 | 2.1 – 2.3 | GitHub Pages HTTPS enforce, www redirect, 1614home.com 301 | curl to the domains returns nothing (blocked) | `curl -I` from local machine |
-| 2.4 | Footer mailto link in `justinm900-svg/1614home-site` | Gated on Phase 1 passing; repo not in this session's scope | Local clone after Phase 1 |
+| 2.4 | Footer mailto link in `justinm900-svg/1614home-site` | DONE 2026-09-25 with Justin's approval: commit e1e1606 on main adds `<a href="mailto:justin@1614home.com">` under the phone number, existing styling, no dashes | Live check from a machine that can reach the site: `curl -s https://1614home.co \| grep mailto` |
 | 2.5 | Load `https://1614home.co/?src=qr` desktop + mobile | No browser access to the domain | Chrome |
 | 3.1 | Jotform notification recipient + autoresponder Reply-To | Gated on Phase 1; the Jotform connector cannot edit email recipients (proved on 2026-09-24) | Jotform Settings → Emails in Chrome |
 | 3.2 | Square business email | Square blocked | Chrome |
@@ -48,7 +48,7 @@ www.1614home.co CNAME:      justinm900-svg.github.io.
 (The 1614home.com URL forward records are managed by Porkbun and were left untouched.)
 
 ## Email test results
-Delivery: PASS to all three addresses (Yahoo → Workspace), replies sent from Workspace. Authentication headers (SPF/DKIM/DMARC): NOT YET CHECKED; see open Phase 1 item.
+Delivery: PASS to all three addresses (Yahoo → Workspace), replies sent from Workspace and receipt confirmed by Justin in Yahoo. Authentication headers (SPF/DKIM/DMARC): not yet read from a raw message; see open Phase 1 item.
 
 ## Website URLs and HTTPS status
 Not verifiable from here (curl blocked).
