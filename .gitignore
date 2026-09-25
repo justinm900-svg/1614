@@ -3,3 +3,6 @@ __pycache__/
 06-Agreements/signed/
 *.env
 Taxes/**/*.pdf
+06-Agreements/current/
+*.docx
+*.pdf
